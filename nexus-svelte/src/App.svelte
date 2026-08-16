@@ -1,4 +1,4 @@
-<!--<script>
+<script>
   import { onMount } from 'svelte';
 
   let vaultItems = [];
@@ -224,11 +224,5 @@
     </section>
   {/if}
 </main>
--->
 
-<script>
-  import { Button } from "carbon-components-svelte";
-</script>
-
-<Button>Hello Carbon</Button>
 
