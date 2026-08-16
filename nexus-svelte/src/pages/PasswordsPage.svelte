@@ -4,6 +4,7 @@
     Button,
     ComposedModal,
     DataTable,
+    InlineLoading,
     InlineNotification,
     ModalBody,
     ModalFooter,
@@ -11,10 +12,16 @@
     TextInput,
     Toolbar,
     ToolbarContent,
+    Grid,
+    Stack,
   } from "carbon-components-svelte";
   import Add from "carbon-icons-svelte/lib/Add.svelte";
+  import Edit from "carbon-icons-svelte/lib/Edit.svelte";
+  import TrashCan from "carbon-icons-svelte/lib/TrashCan.svelte";
   import Locked from "carbon-icons-svelte/lib/Locked.svelte";
-  import { createPassword, getPasswords } from "../services/passwordService.js";
+  import Copy from "carbon-icons-svelte/lib/Copy.svelte";
+  import Launch from "carbon-icons-svelte/lib/Launch.svelte";
+  import { createPassword, getPasswords, updatePassword, deletePassword } from "../services/passwordService.js";
 
   let passwords = [];
   let error = "";
@@ -29,15 +36,49 @@
   let createError = "";
   let isSaving = false;
 
+  let isEditDialogOpen = false;
+  let editingPassword = null;
+  let editFormData = { site: "", username: "", secret: "" };
+  let editError = "";
+
+  let isDeleteConfirmOpen = false;
+  let passwordToDelete = null;
+  let deleteError = "";
+  let isDeleting = false;
+
+  let page = 0;
+  let hasMore = true;
+  let isLoadingMore = false;
+
+//TODO: In a real application, the vault PIN should be securely stored and managed, not hardcoded in the frontend code.
   const vaultPin = "1234";
 
-  onMount(async () => {
+  async function loadNextPage() {
+    if (!hasMore || isLoadingMore) return;
+    isLoadingMore = true;
     try {
-      passwords = await getPasswords();
+      const result = await getPasswords(page, 20);
+      passwords = [...passwords, ...result.content];
+      hasMore = !result.last;
+      page += 1;
     } catch (requestError) {
       error = requestError instanceof Error ? requestError.message : "Unable to load passwords.";
+    } finally {
+      isLoadingMore = false;
     }
+  }
+
+  onMount(() => {
+    loadNextPage();
   });
+
+  function observeSentinel(node) {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) loadNextPage();
+    });
+    observer.observe(node);
+    return { destroy: () => observer.disconnect() };
+  }
 
   function openUnlockDialog(password) {
     selectedPassword = password;
@@ -97,34 +138,179 @@
       isSaving = false;
     }
   }
+
+
+  function openEditDialog(password) {
+    editingPassword = password;
+    editFormData = { ...password };
+    editError = "";
+    isEditDialogOpen = true;
+  }
+
+  function closeEditDialog() {
+    isEditDialogOpen = false;
+    editError = "";
+  }
+
+  async function savePasswordChanges() {
+    if (!editFormData.site.trim() || !editFormData.username.trim() || !editFormData.secret.trim()) {
+      editError = "Site, username and secret are required.";
+      return;
+    }
+
+    try {
+      const updated = await updatePassword(editingPassword.id, {
+        site: editFormData.site.trim(),
+        username: editFormData.username.trim(),
+        secret: editFormData.secret.trim(),
+      });
+
+      passwords = passwords.map((p) => (p.id === updated.id ? updated : p));
+      isEditDialogOpen = false;
+
+    } catch (requestError) {
+      editError = requestError instanceof Error ? requestError.message : "Unable to update password.";
+    } 
+  }
+
+  function openDeleteConfirm(password) {
+  passwordToDelete = password;
+  deleteError = "";
+  isDeleteConfirmOpen = true;
+}
+
+function closeDeleteConfirm() {
+  isDeleteConfirmOpen = false;
+}
+
+async function confirmDelete() {
+  isDeleting = true;
+  try {
+    await deletePassword(passwordToDelete.id);
+    passwords = passwords.filter((p) => p.id !== passwordToDelete.id);
+    isDeleteConfirmOpen = false;
+  } catch (requestError) {
+    deleteError = requestError instanceof Error ? requestError.message : "Unable to delete password.";
+  } finally {
+    isDeleting = false;
+  }
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
+    error = "Unable to copy to clipboard: " + (err instanceof Error ? err.message : String(err));
+  }
+}
+
+function openSite(site) {
+    const url = /^https?:\/\//i.test(site) ? site : `https://${site}`;
+    const website = new URL(url);
+
+    if (!["http:", "https:"].includes(website.protocol)) {
+      throw new Error("Only HTTP and HTTPS websites can be opened.");
+    }
+
+    window.open(website.href, "_blank", "noopener,noreferrer");
+  }
 </script>
 
+<style>
+  :global(.bx--btn.passwords-header) {
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10rem;
+  }
+
+  :global(.passwords-header) {
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2rem;
+    padding-top: 2rem;
+  }
+
+  :global(.cell-with-action) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  </style>
+
+<Grid fullWidth>
 {#if error}
   <p>{error}</p>
 {:else}
+
   <DataTable
     headers={[
-      { key: "site", value: "Site" },
+      { key: "website", value: "Site" },
       { key: "username", value: "Username" },
       { key: "secret", value: "Secret" },
       { key: "actions", value: "Actions" },
     ]}
     rows={passwords}
   >
-    <Toolbar>
-      <ToolbarContent>
-        <Button icon={Add} on:click={openCreateDialog}>New password</Button>
-      </ToolbarContent>
-    </Toolbar>
+  <Stack orientation="horizontal" gap="3rem" class="passwords-header">
+  <h1>Passwords</h1>
+
+  <Toolbar>
+    <ToolbarContent>
+      <Button class="new-password-button" icon={Add} on:click={openCreateDialog}>
+        New password
+      </Button>
+    </ToolbarContent>
+  </Toolbar>
+</Stack>
+
+  
     <svelte:fragment slot="cell" let:cell let:row>
-      {#if cell.key === "secret"}
-        {#if revealedPasswordId === row.id}
-          {cell.value}
-        {:else}
-          ********
-        {/if}
-      {:else if cell.key === "actions"}
+  {#if cell.key === "website"}
+    <span class="cell-with-action">
+      {cell.value}
+      <Button
+        kind="ghost"
+        size="sm"
+        icon={Launch}
+        hasIconOnly
+        tooltipPosition="right"
+        iconDescription="Open website"
+        on:click={() => openSite(cell.value)}
+      />
+    </span>
+  {:else if cell.key === "username"}
+    <span class="cell-with-action">
+      {cell.value}
+      <Button
+        kind="ghost"
+        size="sm"
+        icon={Copy}
+        hasIconOnly
+        tooltipPosition="right"
+        iconDescription="Copy username"
+        on:click={() => copyToClipboard(cell.value)}
+      />
+    </span>
+  {:else if cell.key === "secret"}
+    {#if revealedPasswordId === row.id}
+      <span class="cell-with-action">
+        {cell.value}
         <Button
+          kind="ghost"
+          size="sm"
+          icon={Copy}
+          hasIconOnly
+          tooltipPosition="right"
+          iconDescription="Copy secret"
+          on:click={() => copyToClipboard(cell.value)}
+        />
+      </span>
+    {:else}
+      ********
+    {/if}
+  {:else if cell.key === "actions"}
+     <Button
           kind="ghost"
           size="sm"
           icon={Locked}
@@ -133,12 +319,37 @@
           iconDescription="Unlock secret"
           on:click={() => openUnlockDialog(row)}
         />
-      {:else}
-        {cell.value}
-      {/if}
-    </svelte:fragment>
+        <Button
+          kind="ghost"
+          size="sm"
+          icon={Edit}
+          hasIconOnly
+          tooltipPosition="left"
+          iconDescription="Edit password"
+          on:click={() => openEditDialog(row)}
+        />
+        <Button
+          kind="ghost"
+          size="sm"
+          icon={TrashCan}
+          hasIconOnly
+          tooltipPosition="left"
+          iconDescription="Delete password"
+          on:click={() => openDeleteConfirm(row)}
+        />
+  {:else}
+    {cell.value}
+  {/if}
+</svelte:fragment>
   </DataTable>
+  {#if isLoadingMore}
+    <InlineLoading description="Loading more passwords..." />
+  {/if}
+  {#if hasMore}
+    <div use:observeSentinel style="height: 1px;"></div>
+  {/if}
 {/if}
+</Grid>
 
 <ComposedModal bind:open={isUnlockDialogOpen} on:close={closeUnlockDialog} on:submit={unlockSecret}>
   <ModalHeader label="Vault protection" title="Enter PIN to reveal secret" />
@@ -178,5 +389,54 @@
     primaryButtonText={isSaving ? "Saving..." : "Save"}
     primaryButtonDisabled={isSaving}
     secondaryButtonText="Cancel"
+  />
+</ComposedModal>
+
+<!-- Edit Dialog -->
+<ComposedModal bind:open={isEditDialogOpen} on:close={closeEditDialog} on:submit={savePasswordChanges}>
+  <ModalHeader label="Vault" title="Edit password" />
+  <ModalBody hasForm>
+    {#if editError}
+      <InlineNotification kind="error" hideCloseButton title="Error" subtitle={editError} />
+    {/if}
+    <TextInput
+      id="edit-password-site"
+      labelText="Site"
+      bind:value={editFormData.site}
+      data-modal-primary-focus
+    />
+    <TextInput
+      id="edit-password-username"
+      labelText="Username"
+      bind:value={editFormData.username}
+    />
+    <TextInput
+      id="edit-password-secret"
+      labelText="Secret"
+      type="password"
+      bind:value={editFormData.secret}
+    />
+  </ModalBody>
+  <ModalFooter
+    primaryButtonText="Save"
+    secondaryButtonText="Cancel"
+  />
+</ComposedModal>
+
+<!-- Delete Confirmation Dialog -->
+<ComposedModal bind:open={isDeleteConfirmOpen} on:close={closeDeleteConfirm} on:submit={confirmDelete}>
+  <ModalHeader label="Vault" title="Confirm deletion" />
+  <ModalBody hasForm>
+    {#if deleteError}
+      <InlineNotification kind="error" hideCloseButton title="Error" subtitle={deleteError} />
+    {/if}
+    <p>Are you sure you want to delete the password for <strong>{passwordToDelete?.site}</strong>?</p>
+    <p style="color: #da1e28; margin-top: 1rem;">This action cannot be undone.</p>
+  </ModalBody>
+  <ModalFooter
+    primaryButtonText={isDeleting ? "Deleting..." : "Delete"}
+    primaryButtonDisabled={isDeleting}
+    secondaryButtonText="Cancel"
+    danger={true}
   />
 </ComposedModal>

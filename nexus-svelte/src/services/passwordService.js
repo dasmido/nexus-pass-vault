@@ -10,8 +10,8 @@ async function request(url, options) {
   return response.status === 204 ? undefined : response.json();
 }
 
-export function getPasswords() {
-  return request(PASSWORDS_API);
+export function getPasswords(page = 0, size = 10) {
+  return request(`${PASSWORDS_API}?page=${page}&size=${size}`);
 }
 
 export function getPassword(id) {
