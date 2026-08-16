@@ -4,7 +4,15 @@
   let vaultItems = [];
   let loading = true;
   let error = '';
+  let saving = false;
+  let formError = '';
   let currentRoute = '/dashboard';
+  let form = {
+    id: null,
+    site: '',
+    username: '',
+    secret: ''
+  };
 
   function normalizeRoute(pathname) {
     if (pathname === '/' || pathname === '') {
@@ -21,6 +29,26 @@
     currentRoute = route;
   }
 
+  function resetForm() {
+    form = {
+      id: null,
+      site: '',
+      username: '',
+      secret: ''
+    };
+    formError = '';
+  }
+
+  function startEdit(item) {
+    form = {
+      id: item.id,
+      site: item.site,
+      username: item.username,
+      secret: item.secret
+    };
+    formError = '';
+  }
+
   async function loadVault() {
     loading = true;
     error = '';
@@ -35,6 +63,69 @@
       error = err instanceof Error ? err.message : 'Unknown error';
     } finally {
       loading = false;
+    }
+  }
+
+  async function submitForm() {
+    if (!form.site || !form.username || !form.secret) {
+      formError = 'All fields are required.';
+      return;
+    }
+
+    saving = true;
+    formError = '';
+
+    try {
+      const isUpdate = form.id !== null;
+      const url = isUpdate ? `/api/passwords/${form.id}` : '/api/passwords';
+      const method = isUpdate ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          site: form.site,
+          username: form.username,
+          secret: form.secret
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`${isUpdate ? 'Update' : 'Create'} failed (${response.status})`);
+      }
+
+      resetForm();
+      await loadVault();
+    } catch (err) {
+      formError = err instanceof Error ? err.message : 'Unknown error';
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function deleteEntry(id) {
+    if (!window.confirm('Delete this password entry?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/passwords/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Delete failed (${response.status})`);
+      }
+
+      if (form.id === id) {
+        resetForm();
+      }
+
+      await loadVault();
+    } catch (err) {
+      formError = err instanceof Error ? err.message : 'Unknown error';
     }
   }
 
@@ -84,6 +175,21 @@
   {:else if currentRoute === '/passwords'}
     <section class="card">
       <h2>Saved Passwords</h2>
+      <div class="editor">
+        <h3>{form.id === null ? 'Create Password' : `Edit #${form.id}`}</h3>
+        <div class="form-grid">
+          <input placeholder="Site" bind:value={form.site} />
+          <input placeholder="Username" bind:value={form.username} />
+          <input placeholder="Secret" bind:value={form.secret} />
+        </div>
+        <div class="form-actions">
+          <button on:click={submitForm} disabled={saving}>{form.id === null ? 'Create' : 'Update'}</button>
+          <button class="muted" on:click={resetForm} disabled={saving}>Clear</button>
+        </div>
+        {#if formError}
+          <p class="status error">{formError}</p>
+        {/if}
+      </div>
       <table>
         <thead>
           <tr>
@@ -91,12 +197,13 @@
             <th>Site</th>
             <th>Username</th>
             <th>Secret</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {#if vaultItems.length === 0}
             <tr>
-              <td colspan="4" class="empty">No entries yet</td>
+              <td colspan="5" class="empty">No entries yet</td>
             </tr>
           {:else}
             {#each vaultItems as item}
@@ -105,6 +212,10 @@
                 <td>{item.site}</td>
                 <td>{item.username}</td>
                 <td><code>{item.secret}</code></td>
+                <td class="actions">
+                  <button class="small" on:click={() => startEdit(item)}>Edit</button>
+                  <button class="small danger" on:click={() => deleteEntry(item.id)}>Delete</button>
+                </td>
               </tr>
             {/each}
           {/if}

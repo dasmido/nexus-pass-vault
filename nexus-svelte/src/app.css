@@ -71,6 +71,57 @@ button {
   overflow: hidden;
 }
 
+.editor {
+  padding: 1rem;
+  border-bottom: 1px solid #1f2f56;
+}
+
+.editor h3 {
+  margin: 0 0 0.75rem;
+  color: #95a8d9;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
+}
+
+input {
+  width: 100%;
+  background: #0b1222;
+  color: #eff3ff;
+  border: 1px solid #2a3f75;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+button.muted {
+  background: #131e36;
+  border-color: #304a87;
+}
+
+button.small {
+  padding: 0.35rem 0.55rem;
+  font-size: 0.84rem;
+}
+
+button.danger {
+  background: #7f2036;
+  border-color: #cd4a66;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 h2 {
   margin: 0;
   padding: 1rem;
@@ -131,6 +182,12 @@ th {
 .empty {
   text-align: center;
   color: #95a8d9;
+}
+
+.actions {
+  white-space: nowrap;
+  display: flex;
+  gap: 0.35rem;
 }
 
 
