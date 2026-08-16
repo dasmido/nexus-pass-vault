@@ -23,12 +23,24 @@ Full build with Svelte compilation from the root POM:
 mvn clean package -Pwith-svelte
 ```
 
+Equivalent command using an absolute path:
+
+```bash
+mvn -f /Users/mohammedjamal/workspace/nexus-pass-vault/pom.xml clean package -Pwith-svelte
+```
+
 ## Run
 
 Run the Spring Boot app module:
 
 ```bash
 mvn -pl nexus-app spring-boot:run
+```
+
+Run the packaged Spring Boot JAR directly:
+
+```bash
+java -jar /Users/mohammedjamal/workspace/nexus-pass-vault/nexus-app/target/nexus-app-1.0.0-SNAPSHOT.jar
 ```
 
 Open:
