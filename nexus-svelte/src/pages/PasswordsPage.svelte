@@ -9,6 +9,8 @@
     ModalBody,
     ModalFooter,
     ModalHeader,
+    OverflowMenu,
+    OverflowMenuItem,
     TextInput,
     Toolbar,
     ToolbarContent,
@@ -25,6 +27,8 @@
   import Renew from "carbon-icons-svelte/lib/Renew.svelte";
   import View from "carbon-icons-svelte/lib/View.svelte";
   import ViewOff from "carbon-icons-svelte/lib/ViewOff.svelte";
+  import Download from "carbon-icons-svelte/lib/Download.svelte";
+  import DocumentPdf from "carbon-icons-svelte/lib/DocumentPdf.svelte";
   import { createPassword, getPasswords, updatePassword, deletePassword } from "../services/passwordService.js";
 
   let passwords = [];
@@ -142,6 +146,88 @@
 
   function closeSearchDialog() {
     isSearchDialogOpen = false;
+  }
+
+  function escapeCsvValue(value) {
+    const safeValue = String(value ?? "").replace(/"/g, '""');
+    return `"${safeValue}"`;
+  }
+
+  function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportToExcel() {
+    const rows = [
+      ["Website", "Username", "Password"],
+      ...filteredPasswords.map((password) => [password.site, password.username, password.secret]),
+    ];
+    const csv = rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+
+    downloadFile(`\ufeff${csv}`, "nexus-passwords.csv", "text/csv;charset=utf-8");
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function exportToPdf() {
+    const printWindow = window.open("", "_blank", "width=900,height=700");
+    if (!printWindow) {
+      error = "Unable to open the PDF export window. Please allow pop-ups and try again.";
+      return;
+    }
+
+    const rows = filteredPasswords
+      .map(
+        (password) => `
+          <tr>
+            <td>${escapeHtml(password.site)}</td>
+            <td>${escapeHtml(password.username)}</td>
+            <td>${escapeHtml(password.secret)}</td>
+          </tr>`
+      )
+      .join("");
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <title>Nexus Pass Vault passwords</title>
+         
+          <style>
+            body { font-family: Arial, sans-serif; color: #161616; padding: 2rem; }
+            h1 { margin-bottom: 1.5rem; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #8d8d8d; padding: 0.75rem; text-align: left; }
+            th { background: #e0e0e0; }
+            @media print { body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <h1>Nexus Pass Vault passwords</h1>
+           <p>Self Hosted password manager</p>
+          <table>
+            <thead><tr><th>Website</th><th>Username</th><th>Password</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </body>
+      </html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   }
 
   function openCreateDialog() {
@@ -361,6 +447,13 @@ function openSite(site) {
     flex-shrink: 0;
   }
 
+  .password-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+  }
+
   </style>
 
 <Grid fullWidth>
@@ -382,6 +475,22 @@ function openSite(site) {
       iconDescription="Filter passwords"
       on:click={openSearchDialog}
     />
+      <Button
+        kind="ghost"
+        icon={Download}
+        hasIconOnly
+        tooltipPosition="bottom"
+        iconDescription="Export passwords to Excel"
+        on:click={exportToExcel}
+      />
+      <Button
+        kind="ghost"
+        icon={DocumentPdf}
+        hasIconOnly
+        tooltipPosition="bottom"
+        iconDescription="Export passwords to PDF"
+        on:click={exportToPdf}
+      />
       <Button class="new-password-button" icon={Add} on:click={openCreateDialog}>
       </Button>
     </ToolbarContent>
@@ -453,6 +562,7 @@ function openSite(site) {
       ********
     {/if}
   {:else if cell.key === "actions"}
+    <span class="password-actions">
      <Button
           kind="ghost"
           size="sm"
@@ -462,24 +572,11 @@ function openSite(site) {
           iconDescription="Unlock secret"
           on:click={() => openUnlockDialog(row)}
         />
-        <Button
-          kind="ghost"
-          size="sm"
-          icon={Edit}
-          hasIconOnly
-          tooltipPosition="left"
-          iconDescription="Edit password"
-          on:click={() => openEditDialog(row)}
-        />
-        <Button
-          kind="ghost"
-          size="sm"
-          icon={TrashCan}
-          hasIconOnly
-          tooltipPosition="left"
-          iconDescription="Delete password"
-          on:click={() => openDeleteConfirm(row)}
-        />
+        <OverflowMenu flipped direction="bottom">
+          <OverflowMenuItem text="Edit password" on:click={() => openEditDialog(row)} />
+          <OverflowMenuItem text="Delete password" danger on:click={() => openDeleteConfirm(row)} />
+        </OverflowMenu>
+    </span>
   {:else}
     {cell.value}
   {/if}
