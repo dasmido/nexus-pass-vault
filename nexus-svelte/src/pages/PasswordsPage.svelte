@@ -274,6 +274,16 @@ function openSite(site) {
 
     window.open(website.href, "_blank", "noopener,noreferrer");
   }
+
+  function getSiteLogo(site) {
+    try {
+      const url = /^https?:\/\//i.test(site) ? site : `https://${site}`;
+      const hostname = new URL(url).hostname;
+      return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=32`;
+    } catch {
+      return "";
+    }
+  }
 </script>
 
 <style>
@@ -344,6 +354,13 @@ function openSite(site) {
     background: #24a148;
   }
 
+  .site-logo {
+    width: 1.25rem;
+    height: 1.25rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
   </style>
 
 <Grid fullWidth>
@@ -385,6 +402,15 @@ function openSite(site) {
     <svelte:fragment slot="cell" let:cell let:row>
   {#if cell.key === "site"}
     <span class="cell-with-action">
+      {#if getSiteLogo(cell.value)}
+        <img
+          class="site-logo"
+          src={getSiteLogo(cell.value)}
+          alt=""
+          aria-hidden="true"
+          on:error={(event) => (event.currentTarget.style.display = "none")}
+        />
+      {/if}
       {cell.value}
       <Button
         kind="ghost"
