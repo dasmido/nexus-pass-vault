@@ -21,11 +21,16 @@
   import Locked from "carbon-icons-svelte/lib/Locked.svelte";
   import Copy from "carbon-icons-svelte/lib/Copy.svelte";
   import Launch from "carbon-icons-svelte/lib/Launch.svelte";
+  import Filter from "carbon-icons-svelte/lib/Filter.svelte";
+  import Renew from "carbon-icons-svelte/lib/Renew.svelte";
+  import View from "carbon-icons-svelte/lib/View.svelte";
+  import ViewOff from "carbon-icons-svelte/lib/ViewOff.svelte";
   import { createPassword, getPasswords, updatePassword, deletePassword } from "../services/passwordService.js";
 
   let passwords = [];
   let error = "";
   let isUnlockDialogOpen = false;
+  let isSearchDialogOpen = false;
   let pinCode = "";
   let pinError = "";
   let selectedPassword = null;
@@ -33,12 +38,14 @@
 
   let isCreateDialogOpen = false;
   let newPassword = { site: "", username: "", secret: "" };
+  let isNewPasswordVisible = false;
   let createError = "";
   let isSaving = false;
 
   let isEditDialogOpen = false;
   let editingPassword = null;
   let editFormData = { site: "", username: "", secret: "" };
+  let isEditPasswordVisible = false;
   let editError = "";
 
   let isDeleteConfirmOpen = false;
@@ -59,6 +66,25 @@
     p.site.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  $: newPasswordStrength = getPasswordStrength(newPassword.secret);
+  $: editPasswordStrength = getPasswordStrength(editFormData.secret);
+
+  function getPasswordStrength(password) {
+    if (!password) return { label: "No password", score: 0 };
+
+    let score = 0;
+    if (password.length >= 12) score += 1;
+    if (password.length >= 16) score += 1;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+    if (score <= 1) return { label: "Weak", score };
+    if (score <= 3) return { label: "Fair", score };
+    if (score === 4) return { label: "Good", score };
+    return { label: "Strong", score };
+  }
 
   async function loadNextPage() {
     if (!hasMore || isLoadingMore) return;
@@ -110,8 +136,17 @@
     pinError = "";
   }
 
+  function openSearchDialog() {
+    isSearchDialogOpen = true;
+  }
+
+  function closeSearchDialog() {
+    isSearchDialogOpen = false;
+  }
+
   function openCreateDialog() {
     newPassword = { site: "", username: "", secret: "" };
+    isNewPasswordVisible = false;
     createError = "";
     isCreateDialogOpen = true;
   }
@@ -119,6 +154,23 @@
   function closeCreateDialog() {
     isCreateDialogOpen = false;
     createError = "";
+  }
+
+  function generatePassword() {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=";
+    const randomValues = new Uint32Array(20);
+
+    crypto.getRandomValues(randomValues);
+
+    return Array.from(randomValues, (value) => characters[value % characters.length]).join("");
+  }
+
+  function suggestNewPassword() {
+    newPassword = { ...newPassword, secret: generatePassword() };
+  }
+
+  function suggestEditPassword() {
+    editFormData = { ...editFormData, secret: generatePassword() };
   }
 
   async function savePassword() {
@@ -150,6 +202,7 @@
   function openEditDialog(password) {
     editingPassword = password;
     editFormData = { ...password };
+    isEditPasswordVisible = false;
     editError = "";
     isEditDialogOpen = true;
   }
@@ -247,6 +300,50 @@ function openSite(site) {
     gap: 0.25rem;
   }
 
+  .empty-passwords-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 180px;
+    border-top: 1px solid #e0e0e0;
+    color: #525252;
+  }
+
+  .secret-input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+
+  .secret-input-row :global(.bx--text-input-wrapper) {
+    flex: 1;
+  }
+
+  .password-strength {
+    margin-top: 0.5rem;
+  }
+
+  .password-strength-label {
+    color: #525252;
+    font-size: 0.75rem;
+  }
+
+  .password-strength-meter {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+  }
+
+  .password-strength-meter span {
+    height: 0.25rem;
+    background: #e0e0e0;
+  }
+
+  .password-strength-meter span.active {
+    background: #24a148;
+  }
+
   </style>
 
 <Grid fullWidth>
@@ -260,22 +357,19 @@ function openSite(site) {
 
   <Toolbar>
     <ToolbarContent>
-    <TextInput
-      id="search-passwords"
-      labelText="Search"
-      placeholder="Search by site or username..."
-      bind:value={searchQuery}
+    <Button
+      kind="ghost"
+      icon={Filter}
+      hasIconOnly
+      tooltipPosition="bottom"
+      iconDescription="Filter passwords"
+      on:click={openSearchDialog}
     />
       <Button class="new-password-button" icon={Add} on:click={openCreateDialog}>
       </Button>
     </ToolbarContent>
   </Toolbar>
 </Stack>
-{#if filteredPasswords.length === 0}
-  <div style="display: flex; justify-content: center; align-items: center; height: 300px;">
-    <p>No passwords found</p>
-  </div>
-{:else}
   <DataTable
     headers={[
       { key: "site", value: "Website" },
@@ -365,6 +459,10 @@ function openSite(site) {
   {/if}
 </svelte:fragment>
   </DataTable>
+  {#if filteredPasswords.length === 0}
+    <div class="empty-passwords-message">
+      <p>No passwords found</p>
+    </div>
   {/if}
   {#if isLoadingMore}
     <InlineLoading description="Loading more passwords..." />
@@ -374,6 +472,20 @@ function openSite(site) {
   {/if}
 <!--{/if}-->
 </Grid>
+
+<ComposedModal bind:open={isSearchDialogOpen} on:close={closeSearchDialog} on:submit={closeSearchDialog}>
+  <ModalHeader label="Passwords" title="Filter passwords" />
+  <ModalBody hasForm>
+    <TextInput
+      id="search-passwords"
+      labelText="Search"
+      placeholder="Search by site or username..."
+      bind:value={searchQuery}
+      data-modal-primary-focus
+    />
+  </ModalBody>
+  <ModalFooter primaryButtonText="Apply filter" secondaryButtonText="Cancel" />
+</ComposedModal>
 
 <ComposedModal bind:open={isUnlockDialogOpen} on:close={closeUnlockDialog} on:submit={unlockSecret}>
   <ModalHeader label="Vault protection" title="Enter PIN to reveal secret" />
@@ -407,7 +519,40 @@ function openSite(site) {
       data-modal-primary-focus
     />
     <TextInput id="new-password-username" labelText="Username" bind:value={newPassword.username} />
-    <TextInput id="new-password-secret" labelText="Secret" type="password" bind:value={newPassword.secret} />
+    <div class="secret-input-row">
+      <TextInput
+        id="new-password-secret"
+        labelText="Secret"
+        type={isNewPasswordVisible ? "text" : "password"}
+        bind:value={newPassword.secret}
+      />
+      <Button
+        kind="ghost"
+        size="sm"
+        icon={isNewPasswordVisible ? ViewOff : View}
+        hasIconOnly
+        tooltipPosition="right"
+        iconDescription={isNewPasswordVisible ? "Hide password" : "Show password"}
+        on:click={() => (isNewPasswordVisible = !isNewPasswordVisible)}
+      />
+      <Button
+        kind="ghost"
+        size="sm"
+        icon={Renew}
+        hasIconOnly
+        tooltipPosition="right"
+        iconDescription="Suggest a secure password"
+        on:click={suggestNewPassword}
+      />
+    </div>
+    <div class="password-strength" aria-live="polite">
+      <span class="password-strength-label">Strength: {newPasswordStrength.label}</span>
+      <div class="password-strength-meter" aria-label={`Password strength: ${newPasswordStrength.label}`}>
+        {#each Array(5) as _, index}
+          <span class:active={index < newPasswordStrength.score}></span>
+        {/each}
+      </div>
+    </div>
   </ModalBody>
   <ModalFooter
     primaryButtonText={isSaving ? "Saving..." : "Save"}
@@ -434,12 +579,40 @@ function openSite(site) {
       labelText="Username"
       bind:value={editFormData.username}
     />
-    <TextInput
-      id="edit-password-secret"
-      labelText="Secret"
-      type="password"
-      bind:value={editFormData.secret}
-    />
+    <div class="secret-input-row">
+      <TextInput
+        id="edit-password-secret"
+        labelText="Secret"
+        type={isEditPasswordVisible ? "text" : "password"}
+        bind:value={editFormData.secret}
+      />
+      <Button
+        kind="ghost"
+        size="sm"
+        icon={isEditPasswordVisible ? ViewOff : View}
+        hasIconOnly
+        tooltipPosition="right"
+        iconDescription={isEditPasswordVisible ? "Hide password" : "Show password"}
+        on:click={() => (isEditPasswordVisible = !isEditPasswordVisible)}
+      />
+      <Button
+        kind="ghost"
+        size="sm"
+        icon={Renew}
+        hasIconOnly
+        tooltipPosition="right"
+        iconDescription="Suggest a secure password"
+        on:click={suggestEditPassword}
+      />
+    </div>
+    <div class="password-strength" aria-live="polite">
+      <span class="password-strength-label">Strength: {editPasswordStrength.label}</span>
+      <div class="password-strength-meter" aria-label={`Password strength: ${editPasswordStrength.label}`}>
+        {#each Array(5) as _, index}
+          <span class:active={index < editPasswordStrength.score}></span>
+        {/each}
+      </div>
+    </div>
   </ModalBody>
   <ModalFooter
     primaryButtonText="Save"

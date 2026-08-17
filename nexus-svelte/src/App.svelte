@@ -44,20 +44,17 @@ import { onMount } from "svelte";
   <svelte:fragment slot="skipToContent"><SkipToContent /></svelte:fragment>
   <HeaderUtilities>
     
-    <HeaderAction
-      bind:isOpen={isOpen2}
-      iconDescription="Help"
-      icon={LogoGithub}
-      on:open={() => {
-        isOpen1 = false;
-        isOpen3 = false;
-      }}
+    <a
+      class="github-link"
+      href="https://github.com/dasmido/nexus-pass-vault"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Open Nexus Pass Vault on GitHub"
+      title="Open Nexus Pass Vault on GitHub"
     >
-      <HeaderPanelLinks>
-        <HeaderPanelDivider>Support</HeaderPanelDivider>
-        <HeaderPanelLink href="/docs">Documentation</HeaderPanelLink>
-      </HeaderPanelLinks>
-    </HeaderAction>
+      <LogoGithub />
+    </a>
+
     <HeaderAction
       bind:isOpen={isOpen3}
       text=""
@@ -82,6 +79,22 @@ import { onMount } from "svelte";
     <SettingsPage />
   {/if}
 </Content>
+
+<style>
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    color: inherit;
+  }
+
+  .github-link :global(svg) {
+    width: 1.65rem;
+    height: 1.65rem;
+  }
+</style>
 
 
 
