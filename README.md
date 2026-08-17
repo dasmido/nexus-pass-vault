@@ -9,6 +9,7 @@ Multi-module Maven project for a Password Vault SaaS demo.
 - `nexus-svelte`: Svelte dashboard source and build automation.
 - `nexus-app`: Spring Boot runnable app that serves API and frontend from the same host/port.
 
+
 ## Build
 
 Standard backend build:
@@ -37,6 +38,16 @@ Run the Spring Boot app module:
 mvn -pl nexus-app spring-boot:run
 ```
 
+### Run with PostgreSQL
+
+Set the PostgreSQL connection values, then start the application with the `postgres` Spring profile:
+
+```bash
+export NEXUS_DB_URL='jdbc:postgresql://db.dasmido.dev:5432/npvdb'
+export NEXUS_DB_USERNAME='app_user'
+export NEXUS_DB_PASSWORD='myPasswordA123'
+mvn -pl nexus-app spring-boot:run -Dspring-boot.run.profiles=postgres
+
 Run the packaged Spring Boot JAR directly:
 
 ```bash
@@ -47,6 +58,5 @@ Open:
 
 - Dashboard: `http://localhost:8080/`
 - API: `http://localhost:8080/api/passwords`
-- H2 console: `http://localhost:8080/h2-console`
 
 

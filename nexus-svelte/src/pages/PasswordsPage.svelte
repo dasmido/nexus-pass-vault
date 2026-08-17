@@ -49,9 +49,16 @@
   let page = 0;
   let hasMore = true;
   let isLoadingMore = false;
+  let searchQuery = "";
 
 //TODO: In a real application, the vault PIN should be securely stored and managed, not hardcoded in the frontend code.
   const vaultPin = "1234";
+
+
+  $: filteredPasswords = passwords.filter(p => 
+    p.site.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   async function loadNextPage() {
     if (!hasMore || isLoadingMore) return;
@@ -230,6 +237,10 @@ function openSite(site) {
     padding-top: 2rem;
   }
 
+  :global(.bx--toolbar-content ) {
+    background-color: white;
+  }
+
   :global(.cell-with-action) {
     display: inline-flex;
     align-items: center;
@@ -239,34 +250,46 @@ function openSite(site) {
   </style>
 
 <Grid fullWidth>
-{#if error}
+<!--{#if error}
   <p>{error}</p>
 {:else}
+-->
 
-  <DataTable
-    headers={[
-      { key: "website", value: "Site" },
-      { key: "username", value: "Username" },
-      { key: "secret", value: "Secret" },
-      { key: "actions", value: "Actions" },
-    ]}
-    rows={passwords}
-  >
   <Stack orientation="horizontal" gap="3rem" class="passwords-header">
   <h1>Passwords</h1>
 
   <Toolbar>
     <ToolbarContent>
+    <TextInput
+      id="search-passwords"
+      labelText="Search"
+      placeholder="Search by site or username..."
+      bind:value={searchQuery}
+    />
       <Button class="new-password-button" icon={Add} on:click={openCreateDialog}>
-        New password
       </Button>
     </ToolbarContent>
   </Toolbar>
 </Stack>
+{#if filteredPasswords.length === 0}
+  <div style="display: flex; justify-content: center; align-items: center; height: 300px;">
+    <p>No passwords found</p>
+  </div>
+{:else}
+  <DataTable
+    headers={[
+      { key: "site", value: "Website" },
+      { key: "username", value: "Username" },
+      { key: "secret", value: "Secret" },
+      { key: "actions", value: "Actions" },
+    ]}
+    rows={filteredPasswords}
+  >
+
 
   
     <svelte:fragment slot="cell" let:cell let:row>
-  {#if cell.key === "website"}
+  {#if cell.key === "site"}
     <span class="cell-with-action">
       {cell.value}
       <Button
@@ -342,13 +365,14 @@ function openSite(site) {
   {/if}
 </svelte:fragment>
   </DataTable>
+  {/if}
   {#if isLoadingMore}
     <InlineLoading description="Loading more passwords..." />
   {/if}
   {#if hasMore}
     <div use:observeSentinel style="height: 1px;"></div>
   {/if}
-{/if}
+<!--{/if}-->
 </Grid>
 
 <ComposedModal bind:open={isUnlockDialogOpen} on:close={closeUnlockDialog} on:submit={unlockSecret}>
