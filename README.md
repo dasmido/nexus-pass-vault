@@ -5,11 +5,6 @@ Self-Hosted Password Manager, Inspired from Apple MacOS Paaswords application.
 
 # Gallery
 <img width="1427" height="647" alt="Screenshot 2026-08-17 at 23 26 24" src="https://github.com/user-attachments/assets/e7d13ca0-e0e0-4202-9b5b-3f11935b5fdd" />
-<img width="1432" height="641" alt="Screenshot 2026-08-17 at 23 25 40" src="https://github.com/user-attachments/assets/63c4afb1-75af-4966-9573-a6462ad63d49" />
-<img width="1429" height="644" alt="Screenshot 2026-08-17 at 23 25 53" src="https://github.com/user-attachments/assets/4235fdaa-7082-48df-90c6-5509ad6d4771" />
-<img width="1434" height="643" alt="Screenshot 2026-08-17 at 23 26 09" src="https://github.com/user-attachments/assets/ab567168-7a4a-4462-a56c-535a45aa5386" />
-<img width="1433" height="644" alt="Screenshot 2026-08-17 at 23 26 54" src="https://github.com/user-attachments/assets/ec0f98ee-ef3b-468f-a7b6-13d4f88805fd" />
-<img width="1433" height="640" alt="Screenshot 2026-08-17 at 23 26 40" src="https://github.com/user-attachments/assets/829beb6c-af2d-43c7-b11b-5ac34ae314e6" />
 
 
 ## Modules
