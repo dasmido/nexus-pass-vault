@@ -9,11 +9,13 @@ Self-Hosted Password Manager, Inspired by the Apple macOS Passwords application.
 
 ## Features
 
-- **macOS-Inspired UI**: Clean, modern dashboard powered by Svelte.
 - **Self-Hosted & Private**: Total control over your secrets without relying on third-party cloud services.
+- **macOS-Inspired UI**: Clean, modern dashboard powered by Svelte.
 - **Spring Boot Core**: Robust backend built with Java and JPA.
-- **Flexible Database Support**: Default lightweight storage with support for PostgreSQL in production.
+- **Flexible Database Support**: Support for PostgreSQL in production.
 - **Unified Distribution**: Svelte frontend compiles directly into the Spring Boot executable JAR.
+- **PIN-Protected Password Reveal**: Safely view stored passwords using an interactive master PIN authorization popup.
+- **PDF & Excel Export**: Export vault data directly into formatted `.pdf` and `.xlsx` files.
 
 # Gallery
 <img width="1427" height="647" alt="Screenshot 2026-08-17 at 23 26 24" src="https://github.com/user-attachments/assets/e7d13ca0-e0e0-4202-9b5b-3f11935b5fdd" />
