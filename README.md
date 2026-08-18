@@ -81,7 +81,7 @@ Open:
 ## Contributions
 
 Contributions, issues, and feature requests are welcome!
-Feel free to check the [issues page](https://github.com/mohammedjamal/nexus-pass-vault/issues) if you want to contribute.
+Feel free to check the [issues page](https://github.com/dasmido/nexus-pass-vault/issues) if you want to contribute.
 
 
 ## Support
