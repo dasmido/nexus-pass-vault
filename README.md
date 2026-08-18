@@ -81,9 +81,6 @@ Open:
 ## Contributions
 
 Contributions, issues, and feature requests are welcome!
-
-- **Mohammed Jamal** ([@mohammedjamal](https://github.com/mohammedjamal)) — *Creator & Lead Maintainer*
-
 Feel free to check the [issues page](https://github.com/mohammedjamal/nexus-pass-vault/issues) if you want to contribute.
 
 
