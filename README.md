@@ -1,7 +1,19 @@
 # Nexus Pass Vault
 
-Self-Hosted Password Manager, Inspired from Apple MacOS Paaswords application.
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Svelte](https://img.shields.io/badge/Svelte-v5-orange?logo=svelte)
+![Java Version](https://img.shields.io/badge/Java-21+-blue?logo=openjdk)
+![npm](https://img.shields.io/badge/npm-v10+-red?logo=npm)
 
+Self-Hosted Password Manager, Inspired by the Apple macOS Passwords application.
+
+## Features
+
+- **macOS-Inspired UI**: Clean, modern dashboard powered by Svelte.
+- **Self-Hosted & Private**: Total control over your secrets without relying on third-party cloud services.
+- **Spring Boot Core**: Robust backend built with Java and JPA.
+- **Flexible Database Support**: Default lightweight storage with support for PostgreSQL in production.
+- **Unified Distribution**: Svelte frontend compiles directly into the Spring Boot executable JAR.
 
 # Gallery
 <img width="1427" height="647" alt="Screenshot 2026-08-17 at 23 26 24" src="https://github.com/user-attachments/assets/e7d13ca0-e0e0-4202-9b5b-3f11935b5fdd" />
@@ -64,4 +76,17 @@ Open:
 - Dashboard: `http://localhost:8080/`
 - API: `http://localhost:8080/api/passwords`
 
+## Contributions
 
+Contributions, issues, and feature requests are welcome!
+
+- **Mohammed Jamal** ([@mohammedjamal](https://github.com/mohammedjamal)) — *Creator & Lead Maintainer*
+
+Feel free to check the [issues page](https://github.com/mohammedjamal/nexus-pass-vault/issues) if you want to contribute.
+
+
+## Support
+
+If you find this project useful and want to support its development, consider buying me a coffee!
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dasmido)
