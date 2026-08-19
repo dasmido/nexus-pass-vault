@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-pass-vault-config
+  namespace: default
+data:
+  ENV: PROD
+  Target: prod
+  PORT: "8080"
+  Host: "0.0.0.0"
+  APIV: "v1"
+  DATABASE_DEBUG: "false"
+  MISC_DOCS_ENABLED: "false"
+  MISC_CORS_ORIGIN: "https://nexuspassvault.dasmido.dev"
+  MISC_FILE_UPLOAD_SIZE_LIMIT_MB: "3"
+  PAGINATION_DEFAULT_PER_PAGE: "50"
+  PAGINATION_MAX_PER_PAGE: "100"
+  MISC_REQ_TIMEOUT: "5000"
