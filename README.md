@@ -1,13 +1,32 @@
 # Nexus Pass Vault
 
-Multi-module Maven project for a Password Vault SaaS demo.
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Svelte](https://img.shields.io/badge/Svelte-v5-orange?logo=svelte)
+![Java Version](https://img.shields.io/badge/Java-21+-blue?logo=openjdk)
+![npm](https://img.shields.io/badge/npm-v10+-red?logo=npm)
+
+Self-Hosted Password Manager, Inspired by the Apple macOS Passwords application.
+
+## Features
+
+- **Self-Hosted & Private**: Total control over your secrets without relying on third-party cloud services.
+- **macOS-Inspired UI**: Clean, modern dashboard powered by Svelte.
+- **Spring Boot Core**: Robust backend built with Java and JPA.
+- **Flexible Database Support**: Support for PostgreSQL in production.
+- **Unified Distribution**: Svelte frontend compiles directly into the Spring Boot executable JAR.
+- **PIN-Protected Password Reveal**: Safely view stored passwords using an interactive master PIN authorization popup.
+- **PDF & Excel Export**: Export vault data directly into formatted `.pdf` and `.xlsx` files.
+
+# Gallery
+<img width="1427" height="647" alt="Screenshot 2026-08-17 at 23 26 24" src="https://github.com/user-attachments/assets/e7d13ca0-e0e0-4202-9b5b-3f11935b5fdd" />
+
 
 ## Modules
 
 - `nexus-jpa`: JPA entity and repository.
 - `nexus-rest`: REST API controller and DTOs.
 - `nexus-svelte`: Svelte dashboard source and build automation.
-- `nexus-app`: Spring Boot runnable app that serves API and frontend from the same host/port.
+- `nexus-app`: Spring Boot runnable app that serves API and frontend.
 
 
 ## Build
@@ -107,4 +126,14 @@ kubectl port-forward service/nexus-pass-vault 8080:80
 Then open `http://localhost:8080/` for the dashboard or
 `http://localhost:8080/api/passwords` for the API.
 
+## Contributions
 
+Contributions, issues, and feature requests are welcome!
+Feel free to check the [issues page](https://github.com/dasmido/nexus-pass-vault/issues) if you want to contribute.
+
+
+## Support
+
+If you find this project useful and want to support its development, consider buying me a coffee!
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dasmido)
