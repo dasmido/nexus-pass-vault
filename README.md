@@ -62,9 +62,9 @@ mvn -pl nexus-app spring-boot:run
 Set the PostgreSQL connection values, then start the application with the `postgres` Spring profile:
 
 ```bash
-export NEXUS_DB_URL='jdbc:postgresql://db.dasmido.dev:5432/npvdb'
-export NEXUS_DB_USERNAME='app_user'
-export NEXUS_DB_PASSWORD='myPasswordA123'
+export NEXUS_DB_URL='jdbc:postgresql://nexus-pass-vault-db:5432/nexus_pass_vault'
+export NEXUS_DB_USERNAME='nexus_pass_vault_user'
+export NEXUS_DB_PASSWORD='nexus_pass_vault_password'
 ```
 
 mvn -pl nexus-app spring-boot:run -Dspring-boot.run.profiles=postgres
